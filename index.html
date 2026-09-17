@@ -3,1389 +3,697 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW STRIKE - 2D Action Shooter</title>
+    <title>SHADOW STRIKE - Sound Edition</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #050508;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #game-wrapper {
-            position: relative;
-            width: 1280px;
-            height: 720px;
-            max-width: 100vw;
-            max-height: 100vh;
-            box-shadow: 0 0 50px rgba(220, 38, 38, 0.3);
-            border: 2px solid #330000;
-            background: #000;
-            overflow: hidden;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            background: #000;
-        }
-
-        /* UI Overlays */
-        .overlay-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 10, 15, 0.92);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            backdrop-filter: blur(8px);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        h1.game-title {
-            font-size: 64px;
-            font-weight: 900;
-            letter-spacing: 6px;
-            color: #ef4444;
-            text-shadow: 0 0 20px #ef4444, 0 0 40px #991b1b;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .subtitle {
-            font-size: 18px;
-            color: #9ca3af;
-            letter-spacing: 3px;
-            margin-bottom: 40px;
-        }
-
-        .menu-btn {
-            width: 280px;
-            padding: 14px 24px;
-            margin: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            background: linear-gradient(135deg, #1f1924, #111827);
-            border: 2px solid #374151;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            text-transform: uppercase;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-
-        .menu-btn:hover {
-            border-color: #ef4444;
-            background: linear-gradient(135deg, #7f1d1d, #991b1b);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
-            transform: translateY(-2px);
-        }
-
-        /* Grid / Panels */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 10px;
-            max-width: 1100px;
-            max-height: 480px;
-            overflow-y: auto;
-            padding: 15px;
-            background: rgba(17, 24, 39, 0.8);
-            border: 1px solid #374151;
-            border-radius: 8px;
-        }
-
-        .level-card {
-            width: 85px;
-            height: 75px;
-            background: #1f2937;
-            border: 2px solid #374151;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .level-card.unlocked {
-            border-color: #ef4444;
-            background: #371b1e;
-        }
-
-        .level-card.unlocked:hover {
-            background: #7f1d1d;
-            transform: scale(1.05);
-        }
-
-        .level-card.locked {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .level-num {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .stars-row {
-            color: #facc15;
-            font-size: 11px;
-            margin-top: 4px;
-        }
-
-        /* Shop & Upgrades */
-        .shop-panel {
-            width: 900px;
-            background: rgba(17, 24, 39, 0.9);
-            border: 1px solid #374151;
-            border-radius: 8px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .shop-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #111827;
-            padding: 12px 20px;
-            border-radius: 6px;
-            border: 1px solid #1f2937;
-        }
-
-        .coins-display {
-            font-size: 22px;
-            color: #facc15;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        /* HUD Overlay */
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            z-index: 5;
-        }
-
-        .hud-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .hud-card {
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            padding: 10px 18px;
-            border-radius: 6px;
-            backdrop-filter: blur(4px);
-        }
-
-        .bar-container {
-            width: 220px;
-            height: 16px;
-            background: #1f2937;
-            border: 1px solid #4b5563;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-
-        .hp-bar-fill {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #dc2626, #ef4444);
-            transition: width 0.1s linear;
-        }
-
-        .hud-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .weapon-box {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid #374151;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-align: right;
-        }
-
-        .ammo-text {
-            font-size: 28px;
-            font-weight: 900;
-            color: #facc15;
-        }
-
-        /* Story Dialog */
-        #dialog-box {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            background: rgba(10, 10, 15, 0.95);
-            border: 2px solid #ef4444;
-            border-radius: 8px;
-            padding: 20px;
-            pointer-events: auto;
-            z-index: 20;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
-        }
-
-        .dialog-speaker {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ef4444;
-            margin-bottom: 8px;
-        }
-
-        .dialog-text {
-            font-size: 16px;
-            line-height: 1.5;
-            color: #e5e7eb;
-            margin-bottom: 15px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #030712; color: #fff; display: flex; justify-content: center; align-items: center; }
+        #game-wrapper { position: relative; width: 1280px; height: 720px; box-shadow: 0 0 50px rgba(56, 189, 248, 0.15); border: 3px solid #1e293b; background: #000; overflow: hidden; border-radius: 8px; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 7, 18, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; backdrop-filter: blur(10px); }
+        .hidden { display: none !important; }
+        h1.game-title { font-size: 64px; font-weight: 900; letter-spacing: 6px; color: #38bdf8; text-shadow: 0 0 25px rgba(56,189,248,0.6); margin-bottom: 10px; }
+        .subtitle { font-size: 18px; color: #9ca3af; letter-spacing: 3px; margin-bottom: 40px; }
+        .menu-btn { width: 280px; padding: 14px 24px; margin: 8px; font-size: 18px; font-weight: bold; color: #fff; background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #38bdf8; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
+        .menu-btn:hover { background: #38bdf8; color: #0f172a; box-shadow: 0 0 20px rgba(56,189,248,0.5); transform: translateY(-2px); }
+        .grid-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 12px; padding: 20px; max-height: 500px; overflow-y: auto; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid #334155; }
+        .grid-container::-webkit-scrollbar { width: 8px; }
+        .grid-container::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+        
+        .level-card { width: 80px; height: 75px; background: #0f172a; border: 2px solid #334155; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .level-card.unlocked { border-color: #38bdf8; background: #1e293b; }
+        .level-card.unlocked:hover { background: #0284c7; transform: scale(1.1); box-shadow: 0 0 15px rgba(56,189,248,0.4); }
+        .level-card.boss-level { border-color: #ef4444; }
+        .level-card.boss-level.unlocked:hover { background: #b91c1c; box-shadow: 0 0 15px rgba(239,68,68,0.4); }
+        
+        /* HUD */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; z-index: 5; }
+        .hud-card { background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 12px 20px; border-radius: 8px; backdrop-filter: blur(5px); }
+        .bar-container { width: 220px; height: 14px; background: #0f172a; border-radius: 7px; overflow: hidden; margin-top: 5px; border: 1px solid #334155; }
+        .bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #16a34a, #22c55e); transition: width 0.15s ease; }
+        .dash-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.1s ease; }
     </style>
 </head>
 <body>
-
-<div id="game-wrapper">
-    <canvas id="gameCanvas" width="1280" height="720"></canvas>
-
-    <!-- HUD -->
-    <div id="hud" class="hidden">
-        <div class="hud-top">
-            <div class="hud-card">
-                <div style="font-size: 12px; color: #9ca3af;">HEALTH</div>
-                <div class="bar-container"><div id="hp-fill" class="hp-bar-fill"></div></div>
-                <div id="hp-text" style="font-size: 12px; font-weight: bold; margin-top: 3px;">100 / 100</div>
+    <div id="game-wrapper">
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+        
+        <!-- HUD -->
+        <div id="hud" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="hud-card">
+                    <div style="font-size: 14px; color: #9ca3af; font-weight: bold;">الصحة (HP)</div>
+                    <div class="bar-container"><div id="hp-bar" class="bar-fill"></div></div>
+                    <div style="font-size: 14px; color: #9ca3af; margin-top: 8px; font-weight: bold;">الاندفاع (SPACE)</div>
+                    <div class="bar-container"><div id="dash-bar" class="dash-bar-fill"></div></div>
+                </div>
+                <div class="hud-card" style="text-align: center; border-color: #38bdf8;">
+                    <div id="wave-text" style="font-size: 22px; font-weight: 900; color: #38bdf8; letter-spacing: 1px;">المرحلة 1</div>
+                    <div id="enemies-left" style="font-size: 14px; color: #e5e7eb; margin-top: 4px;">الأعداء المتبقون: 0</div>
+                </div>
+                <div class="hud-card" style="text-align: left;">
+                    <div id="coins-text" style="font-size: 20px; color: #facc15; font-weight: bold;">🪙 0</div>
+                </div>
             </div>
-            <div class="hud-card" style="text-align: center;">
-                <div id="stage-title" style="font-weight: 900; color: #ef4444; font-size: 18px;">STAGE 1</div>
-                <div id="objective-text" style="font-size: 13px; color: #f3f4f6;">Objective: Kill all enemies</div>
-            </div>
-            <div class="hud-card" style="text-align: left;">
-                <div style="color: #facc15; font-weight: bold; font-size: 18px;">COINS: <span id="coins-count">0</span></div>
-                <div style="color: #9ca3af; font-size: 13px;">KILLS: <span id="kills-count">0</span></div>
-            </div>
-        </div>
-
-        <div class="hud-bottom">
-            <div id="weapon-slots" style="display: flex; gap: 8px;"></div>
-            <div class="weapon-box">
-                <div id="weapon-name" style="color: #ef4444; font-weight: bold; font-size: 14px;">PISTOL</div>
-                <div id="ammo-display" class="ammo-text">12 / ∞</div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div class="hud-card">
+                    <div id="weapon-name" style="font-size: 16px; font-weight: bold; color: #38bdf8;">مسدس بلازما</div>
+                    <div id="ammo-text" style="font-size: 24px; font-weight: 900;">15 / ∞</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- MAIN MENU -->
-    <div id="main-menu" class="overlay-screen">
-        <h1 class="game-title">SHADOW STRIKE</h1>
-        <div class="subtitle">PROJECT: BLACK SHADOW TAKEDOWN</div>
-        <button class="menu-btn" onclick="Game.showScreen('level-select')">PLAY GAME</button>
-        <button class="menu-btn" onclick="Game.showScreen('upgrades')">UPGRADES</button>
-        <button class="menu-btn" onclick="Game.showScreen('weapons')">WEAPONS</button>
-        <button class="menu-btn" onclick="Game.showScreen('settings')">SETTINGS</button>
-    </div>
-
-    <!-- LEVEL SELECT -->
-    <div id="level-select" class="overlay-screen hidden">
-        <h2 style="font-size: 32px; color: #ef4444; margin-bottom: 10px;">SELECT OPERATION (1-50)</h2>
-        <div id="levels-grid" class="grid-container"></div>
-        <button class="menu-btn" style="margin-top: 20px;" onclick="Game.showScreen('main-menu')">BACK</button>
-    </div>
-
-    <!-- UPGRADES -->
-    <div id="upgrades" class="overlay-screen hidden">
-        <h2 style="font-size: 32px; color: #ef4444; margin-bottom: 5px;">TACTICAL UPGRADES</h2>
-        <div class="coins-display">AVAILABLE COINS: <span id="shop-coins">0</span></div>
-        <div class="shop-panel" id="upgrades-list"></div>
-        <button class="menu-btn" style="margin-top: 15px;" onclick="Game.showScreen('main-menu')">BACK</button>
-    </div>
-
-    <!-- WEAPONS -->
-    <div id="weapons" class="overlay-screen hidden">
-        <h2 style="font-size: 32px; color: #ef4444; margin-bottom: 5px;">ARMORY</h2>
-        <div class="shop-panel" id="weapons-list"></div>
-        <button class="menu-btn" style="margin-top: 15px;" onclick="Game.showScreen('main-menu')">BACK</button>
-    </div>
-
-    <!-- SETTINGS -->
-    <div id="settings" class="overlay-screen hidden">
-        <h2 style="font-size: 32px; color: #ef4444; margin-bottom: 20px;">SETTINGS</h2>
-        <div style="background: rgba(17,24,39,0.9); padding: 30px; border-radius: 8px; width: 400px; text-align: center;">
-            <p style="margin-bottom: 20px;">Audio Synthesizer: ACTIVE</p>
-            <button class="menu-btn" onclick="SaveSystem.resetProgress(); alert('Progress Reset!'); location.reload();">RESET PROGRESS</button>
+        <!-- Menus -->
+        <div id="menu-start" class="overlay-screen">
+            <h1 class="game-title">SHADOW STRIKE</h1>
+            <div class="subtitle">نسخة كاملة - 50 مرحلة، أصوات تفاعلية، أرضية فضائية</div>
+            <button class="menu-btn" onclick="Game.showLevelSelect()">بدء المهمة</button>
         </div>
-        <button class="menu-btn" style="margin-top: 20px;" onclick="Game.showScreen('main-menu')">BACK</button>
-    </div>
 
-    <!-- PAUSE MENU -->
-    <div id="pause-menu" class="overlay-screen hidden">
-        <h2 style="font-size: 48px; color: #ef4444; margin-bottom: 20px;">PAUSED</h2>
-        <button class="menu-btn" onclick="Game.resume()">RESUME</button>
-        <button class="menu-btn" onclick="Game.showScreen('level-select')">LEVEL SELECT</button>
-        <button class="menu-btn" onclick="Game.showScreen('main-menu')">MAIN MENU</button>
-    </div>
-
-    <!-- STAGE CLEAR -->
-    <div id="stage-clear" class="overlay-screen hidden">
-        <h2 style="font-size: 52px; color: #22c55e; margin-bottom: 10px;">STAGE CLEAR!</h2>
-        <div id="stars-display" style="font-size: 40px; color: #facc15; margin-bottom: 15px;">⭐⭐⭐</div>
-        <div style="background: #111827; padding: 20px 40px; border-radius: 8px; text-align: right; margin-bottom: 20px; border: 1px solid #374151;">
-            <p style="margin: 8px 0; font-size: 18px;">Kills: <span id="sc-kills" style="color: #ef4444; font-weight: bold;">0</span></p>
-            <p style="margin: 8px 0; font-size: 18px;">Shots Fired: <span id="sc-shots" style="color: #60a5fa; font-weight: bold;">0</span></p>
-            <p style="margin: 8px 0; font-size: 18px;">Coins Earned: <span id="sc-coins" style="color: #facc15; font-weight: bold;">0</span></p>
+        <div id="menu-levels" class="overlay-screen hidden">
+            <h1 class="game-title" style="font-size: 40px; margin-bottom: 20px;">اختر المرحلة</h1>
+            <div class="grid-container" id="levels-grid"></div>
+            <button class="menu-btn" style="margin-top: 25px;" onclick="Game.showStartMenu()">رجوع</button>
         </div>
-        <button class="menu-btn" id="next-stage-btn" onclick="Game.startNextStage()">NEXT STAGE</button>
-        <button class="menu-btn" onclick="Game.showScreen('level-select')">STAGE SELECT</button>
-    </div>
 
-    <!-- GAME OVER -->
-    <div id="game-over" class="overlay-screen hidden">
-        <h2 style="font-size: 52px; color: #dc2626; margin-bottom: 10px;">MISSION FAILED</h2>
-        <p style="color: #9ca3af; margin-bottom: 20px;">RAYAN WAS ELIMINATED IN ACTION</p>
-        <button class="menu-btn" onclick="Game.retryStage()">RETRY</button>
-        <button class="menu-btn" onclick="Game.showScreen('level-select')">LEVEL SELECT</button>
-    </div>
-
-    <!-- STORY DIALOG OVERLAY -->
-    <div id="story-overlay" class="hidden">
-        <div id="dialog-box">
-            <div id="dialog-speaker" class="dialog-speaker">RAYAN</div>
-            <div id="dialog-text" class="dialog-text">Text here...</div>
-            <button class="menu-btn" style="width: auto; padding: 6px 18px; font-size: 14px; float: left;" onclick="Game.advanceStory()">CONTINUE [SPACE]</button>
+        <div id="menu-end" class="overlay-screen hidden">
+            <h1 id="end-title" class="game-title">انتهت اللعبة</h1>
+            <button class="menu-btn" onclick="Game.startLevel(Game.currentLevel)">إعادة المحاولة</button>
+            <button class="menu-btn" onclick="Game.showLevelSelect()">قائمة المراحل</button>
         </div>
     </div>
-</div>
 
-<script>
-/* ==========================================================================
-   AUDIO ENGINE (Web Audio API Synthesizer)
-   ========================================================================== */
-const Sound = {
-    ctx: null,
-    init() {
-        if (!this.ctx) {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-    },
-    play(type) {
-        if (!this.ctx) return;
-        try {
-            const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-
-            if (type === 'shoot') {
+    <script>
+        // --- SOUND ENGINE (Web Audio API) ---
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            shoot() {
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                osc.start(now);
-                osc.stop(now + 0.08);
-            } else if (type === 'explosion') {
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+            },
+            dash() {
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+            },
+            hit() {
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.exponentialRampToValueAtTime(20, now + 0.4);
-                gain.gain.setValueAtTime(0.4, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            } else if (type === 'hit') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(60, now + 0.05);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                osc.start(now);
-                osc.stop(now + 0.05);
-            } else if (type === 'jump') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(350, now + 0.12);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-                osc.start(now);
-                osc.stop(now + 0.12);
-            } else if (type === 'reload') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.setValueAtTime(600, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-            } else if (type === 'click') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, now);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
-                osc.start(now);
-                osc.stop(now + 0.03);
+                osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.06);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.06);
+            },
+            kill() {
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.18);
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.18);
+            },
+            win() {
+                if (!this.ctx) return;
+                const notes = [261.63, 329.63, 392.00, 523.25];
+                notes.forEach((freq, i) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + (i + 1) * 0.1);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.1);
+                    osc.stop(this.ctx.currentTime + (i + 1) * 0.1);
+                });
+            },
+            lose() {
+                if (!this.ctx) return;
+                const notes = [300, 240, 180, 120];
+                notes.forEach((freq, i) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + i * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + (i + 1) * 0.12);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.12);
+                    osc.stop(this.ctx.currentTime + (i + 1) * 0.12);
+                });
             }
-        } catch(e) {}
-    }
-};
-
-/* ==========================================================================
-   SAVE SYSTEM
-   ========================================================================== */
-const SaveSystem = {
-    KEY: 'SHADOW_STRIKE_SAVE_V1',
-    data: {
-        maxUnlockedStage: 1,
-        coins: 0,
-        stars: {},
-        upgrades: { hp: 0, damage: 0, speed: 0, reload: 0, mag: 0 },
-        unlockedWeapons: ['pistol']
-    },
-    load() {
-        const saved = localStorage.getItem(this.KEY);
-        if (saved) {
-            try { this.data = JSON.parse(saved); } catch(e) {}
-        }
-    },
-    save() {
-        localStorage.setItem(this.KEY, JSON.stringify(this.data));
-    },
-    resetProgress() {
-        localStorage.removeItem(this.KEY);
-    }
-};
-SaveSystem.load();
-
-/* ==========================================================================
-   WEAPONS DATA
-   ========================================================================== */
-const WEAPONS = {
-    pistol: { name: 'Pistol', damage: 25, fireRate: 200, magSize: 12, reloadTime: 1000, cost: 0, unlocked: true },
-    smg: { name: 'SMG', damage: 18, fireRate: 90, magSize: 30, reloadTime: 1200, cost: 500, unlocked: false },
-    shotgun: { name: 'Shotgun', damage: 15, pellets: 6, fireRate: 600, magSize: 8, reloadTime: 1800, cost: 1200, unlocked: false },
-    rifle: { name: 'Assault Rifle', damage: 32, fireRate: 120, magSize: 25, reloadTime: 1400, cost: 2500, unlocked: false },
-    sniper: { name: 'Sniper Rifle', damage: 120, fireRate: 900, magSize: 5, reloadTime: 2000, cost: 4000, unlocked: false },
-    heavy: { name: 'Heavy Cannon', damage: 180, fireRate: 1100, magSize: 4, reloadTime: 2500, cost: 7000, unlocked: false }
-};
-
-/* ==========================================================================
-   50 STAGES DATA DEFINITIONS
-   ========================================================================== */
-const STAGES_DATA = [];
-const CHAPTER_NAMES = [
-    "CHAPTER 1 — THE BEGINNING",
-    "CHAPTER 2 — MILITARY ZONE",
-    "CHAPTER 3 — SECRET FACILITY",
-    "CHAPTER 4 — BLACK SHADOW CITY",
-    "CHAPTER 5 — THE FINAL WAR"
-];
-
-const THEMES = ['city', 'military', 'lab', 'desert', 'hq'];
-
-for (let i = 1; i <= 50; i++) {
-    let chapIndex = Math.floor((i - 1) / 10);
-    let theme = THEMES[chapIndex];
-    let enemiesCount = 5 + Math.floor(i * 1.4);
-    let targetObj = 'kill_all';
-    let boss = null;
-    let storyText = `Rayan advances deeper into Black Shadow territory. Stage ${i} ahead.`;
-
-    if (i === 1) storyText = "Rayan: 'It has been years... but Black Shadow is back. I'll find out what happened to my old squad.'";
-    if (i === 10) { boss = "KANE'S GUARD"; targetObj = 'boss'; storyText = "Kane's Commander Guard intercepts Rayan at the industrial yard!"; }
-    if (i === 14) storyText = "Armory crate found! SMG blueprint unlocked.";
-    if (i === 16) storyText = "Warning: Mutant Soldier specimens detected in laboratory chambers.";
-    if (i === 19) { boss = "COMMANDER VEX"; targetObj = 'boss'; storyText = "Commander Vex locks the doors. 'You won't leave this base alive, Rayan!'"; }
-    if (i === 27) storyText = "Rayan finds classified files: 'My squad... they didn't die. They were captured for experiments!'";
-    if (i === 30) { boss = "TITAN GUARD"; targetObj = 'boss'; storyText = "The facility's automated Titan Guard activates!"; }
-    if (i === 38) { boss = "COMMANDER KANE"; targetObj = 'boss'; storyText = "Commander Kane steps forward! 'You're too late, Rayan!'"; }
-    if (i === 48) { boss = "COMMANDER KANE (3-PHASE)"; targetObj = 'boss'; storyText = "Kane returns with cybernetic enhancements! Defeat all 3 phases!"; }
-    if (i === 49) { boss = "THE SHADOW"; targetObj = 'boss'; storyText = "The true mastermind behind Black Shadow emerges from the dark!"; }
-    if (i === 50) { boss = "THE SHADOW (FINAL BATTLE)"; targetObj = 'boss'; storyText = "FINAL BATTLE: Destroy The Shadow and end Black Shadow once and for all!"; }
-
-    STAGES_DATA.push({
-        id: i,
-        chapter: CHAPTER_NAMES[chapIndex],
-        theme: theme,
-        enemiesCount: enemiesCount,
-        objective: targetObj,
-        boss: boss,
-        story: storyText
-    });
-}
-
-/* ==========================================================================
-   PARTICLE SYSTEM & EFFECTS
-   ========================================================================== */
-class Particle {
-    constructor(x, y, vx, vy, color, size, life) {
-        this.x = x; this.y = y;
-        this.vx = vx; this.vy = vy;
-        this.color = color;
-        this.size = size;
-        this.life = life;
-        this.maxLife = life;
-    }
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life--;
-    }
-    draw(ctx, camX) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x - camX, this.y, this.size, this.size);
-        ctx.restore();
-    }
-}
-
-/* ==========================================================================
-   GAME ENGINE & STATE
-   ========================================================================== */
-const Game = {
-    canvas: null, ctx: null,
-    currentScreen: 'main-menu',
-    activeStage: 1,
-    state: 'MENU',
-    
-    cameraX: 0,
-    shake: 0,
-    particles: [],
-    bullets: [],
-    enemies: [],
-    pickups: [],
-    player: null,
-    bossEntity: null,
-
-    stageKills: 0,
-    stageShots: 0,
-    stageCoins: 0,
-
-    keys: {},
-    mouse: { x: 0, y: 0, down: false },
-
-    init() {
-        this.canvas = document.getElementById('gameCanvas');
-        this.ctx = this.canvas.getContext('2d');
-
-        window.addEventListener('keydown', e => {
-            this.keys[e.code] = true;
-            if (e.code === 'KeyR' && this.player) this.player.reload();
-            if (e.code === 'Escape') this.togglePause();
-            if (e.code === 'Space' && this.state === 'STORY') this.advanceStory();
-            if (['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6'].includes(e.code)) {
-                let idx = parseInt(e.code.replace('Digit','')) - 1;
-                if (this.player) this.player.selectWeaponIndex(idx);
-            }
-        });
-        window.addEventListener('keyup', e => this.keys[e.code] = false);
-
-        this.canvas.addEventListener('mousemove', e => {
-            const rect = this.canvas.getBoundingClientRect();
-            this.mouse.x = (e.clientX - rect.left) * (1280 / rect.width);
-            this.mouse.y = (e.clientY - rect.top) * (720 / rect.height);
-        });
-
-        this.canvas.addEventListener('mousedown', () => {
-            Sound.init();
-            this.mouse.down = true;
-        });
-        window.addEventListener('mouseup', () => this.mouse.down = false);
-
-        this.renderLevelsGrid();
-        this.renderUpgrades();
-        this.renderWeapons();
-        this.loop();
-    },
-
-    showScreen(id) {
-        document.querySelectorAll('.overlay-screen').forEach(el => el.classList.add('hidden'));
-        document.getElementById('hud').classList.add('hidden');
-        document.getElementById('story-overlay').classList.add('hidden');
-        
-        if (id !== 'hud') {
-            document.getElementById(id).classList.remove('hidden');
-        } else {
-            document.getElementById('hud').classList.remove('hidden');
-        }
-        this.currentScreen = id;
-        if (id === 'upgrades') this.renderUpgrades();
-        if (id === 'weapons') this.renderWeapons();
-        if (id === 'level-select') this.renderLevelsGrid();
-    },
-
-    togglePause() {
-        if (this.state === 'PLAYING') {
-            this.state = 'PAUSED';
-            this.showScreen('pause-menu');
-        } else if (this.state === 'PAUSED') {
-            this.resume();
-        }
-    },
-
-    resume() {
-        this.state = 'PLAYING';
-        this.showScreen('hud');
-    },
-
-    startStage(stageId) {
-        if (stageId > SaveSystem.data.maxUnlockedStage) return;
-        this.activeStage = stageId;
-        this.stageKills = 0;
-        this.stageShots = 0;
-        this.stageCoins = 0;
-        this.particles = [];
-        this.bullets = [];
-        this.enemies = [];
-        this.pickups = [];
-
-        const stage = STAGES_DATA[stageId - 1];
-        
-        this.player = new Player(100, 500);
-
-        let enemyTypes = ['basic', 'fast', 'heavy', 'ranged', 'mutant', 'elite'];
-        for (let i = 0; i < stage.enemiesCount; i++) {
-            let spawnX = 600 + i * 220 + Math.random() * 100;
-            let typeIdx = Math.min(enemyTypes.length - 1, Math.floor((stageId / 50) * enemyTypes.length));
-            let type = enemyTypes[Math.floor(Math.random() * (typeIdx + 1))];
-            this.enemies.push(new Enemy(spawnX, 500, type));
-        }
-
-        this.bossEntity = null;
-        if (stage.boss) {
-            this.bossEntity = new Boss(2200, 450, stage.boss);
-        }
-
-        this.state = 'STORY';
-        document.getElementById('dialog-speaker').innerText = "RAYAN - MISSION BRIEFING";
-        document.getElementById('dialog-text').innerText = stage.story;
-        document.getElementById('story-overlay').classList.remove('hidden');
-        this.showScreen('hud');
-        document.getElementById('stage-title').innerText = `STAGE ${stageId}`;
-        document.getElementById('objective-text').innerText = `Target: ${stage.boss ? 'Eliminate ' + stage.boss : 'Eliminate Enemies'}`;
-    },
-
-    advanceStory() {
-        document.getElementById('story-overlay').classList.add('hidden');
-        this.state = 'PLAYING';
-    },
-
-    retryStage() {
-        this.startStage(this.activeStage);
-    },
-
-    startNextStage() {
-        if (this.activeStage < 50) {
-            this.startStage(this.activeStage + 1);
-        } else {
-            this.showScreen('main-menu');
-        }
-    },
-
-    triggerStageClear() {
-        this.state = 'STAGE_CLEAR';
-        Sound.play('click');
-        
-        let stars = 1;
-        if (this.stageKills >= STAGES_DATA[this.activeStage - 1].enemiesCount) stars++;
-        if (this.player.hp >= this.player.maxHp) stars++;
-
-        SaveSystem.data.stars[this.activeStage] = Math.max(SaveSystem.data.stars[this.activeStage] || 0, stars);
-        if (this.activeStage + 1 > SaveSystem.data.maxUnlockedStage) {
-            SaveSystem.data.maxUnlockedStage = Math.min(50, this.activeStage + 1);
-        }
-        SaveSystem.data.coins += this.stageCoins;
-        SaveSystem.save();
-
-        document.getElementById('sc-kills').innerText = this.stageKills;
-        document.getElementById('sc-shots').innerText = this.stageShots;
-        document.getElementById('sc-coins').innerText = this.stageCoins;
-        document.getElementById('stars-display').innerText = "⭐".repeat(stars);
-
-        this.showScreen('stage-clear');
-    },
-
-    triggerGameOver() {
-        this.state = 'GAME_OVER';
-        Sound.play('hit');
-        this.showScreen('game-over');
-    },
-
-    renderLevelsGrid() {
-        const container = document.getElementById('levels-grid');
-        container.innerHTML = '';
-        for (let i = 1; i <= 50; i++) {
-            const unlocked = i <= SaveSystem.data.maxUnlockedStage;
-            const stars = SaveSystem.data.stars[i] || 0;
-            const card = document.createElement('div');
-            card.className = `level-card ${unlocked ? 'unlocked' : 'locked'}`;
-            card.innerHTML = `
-                <div class="level-num">${i}</div>
-                <div class="stars-row">${unlocked ? '⭐'.repeat(stars) : '🔒'}</div>
-            `;
-            if (unlocked) card.onclick = () => Game.startStage(i);
-            container.appendChild(card);
-        }
-    },
-
-    renderUpgrades() {
-        document.getElementById('shop-coins').innerText = SaveSystem.data.coins;
-        const container = document.getElementById('upgrades-list');
-        container.innerHTML = '';
-
-        const list = [
-            { key: 'hp', name: 'MAX HEALTH', baseCost: 200, desc: '+20 Max Health' },
-            { key: 'damage', name: 'WEAPON DAMAGE', baseCost: 300, desc: '+15% Damage' },
-            { key: 'speed', name: 'MOVEMENT SPEED', baseCost: 250, desc: '+10% Speed' },
-            { key: 'reload', name: 'RELOAD SPEED', baseCost: 200, desc: '10% Faster Reload' }
-        ];
-
-        list.forEach(item => {
-            let lvl = SaveSystem.data.upgrades[item.key] || 0;
-            let cost = item.baseCost * (lvl + 1);
-            let row = document.createElement('div');
-            row.className = 'shop-row';
-            row.innerHTML = `
-                <div>
-                    <div style="font-weight: bold; font-size: 18px;">${item.name} (LVL ${lvl})</div>
-                    <div style="color: #9ca3af; font-size: 13px;">${item.desc}</div>
-                </div>
-                <button class="menu-btn" style="width: 140px; margin: 0;" onclick="Game.buyUpgrade('${item.key}', ${cost})">UPGRADE (${cost} C)</button>
-            `;
-            container.appendChild(row);
-        });
-    },
-
-    buyUpgrade(key, cost) {
-        if (SaveSystem.data.coins >= cost) {
-            SaveSystem.data.coins -= cost;
-            SaveSystem.data.upgrades[key] = (SaveSystem.data.upgrades[key] || 0) + 1;
-            SaveSystem.save();
-            Sound.play('click');
-            this.renderUpgrades();
-        }
-    },
-
-    renderWeapons() {
-        const container = document.getElementById('weapons-list');
-        container.innerHTML = '';
-
-        Object.keys(WEAPONS).forEach(wKey => {
-            let w = WEAPONS[wKey];
-            let isUnlocked = SaveSystem.data.unlockedWeapons.includes(wKey);
-            let row = document.createElement('div');
-            row.className = 'shop-row';
-            row.innerHTML = `
-                <div>
-                    <div style="font-weight: bold; font-size: 18px; color: #ef4444;">${w.name}</div>
-                    <div style="color: #9ca3af; font-size: 13px;">Damage: ${w.damage} | Mag: ${w.magSize}</div>
-                </div>
-                <div>
-                    ${isUnlocked 
-                        ? '<span style="color: #22c55e; font-weight: bold;">UNLOCKED</span>' 
-                        : `<button class="menu-btn" style="width: 140px; margin: 0;" onclick="Game.buyWeapon('${wKey}', ${w.cost})">BUY (${w.cost} C)</button>`}
-                </div>
-            `;
-            container.appendChild(row);
-        });
-    },
-
-    buyWeapon(wKey, cost) {
-        if (SaveSystem.data.coins >= cost) {
-            SaveSystem.data.coins -= cost;
-            SaveSystem.data.unlockedWeapons.push(wKey);
-            SaveSystem.save();
-            Sound.play('click');
-            this.renderWeapons();
-        }
-    },
-
-    loop() {
-        this.update();
-        this.draw();
-        requestAnimationFrame(() => this.loop());
-    },
-
-    update() {
-        if (this.state !== 'PLAYING') return;
-
-        if (this.player) {
-            this.player.update();
-            this.cameraX = Math.max(0, this.player.x - 400);
-        }
-
-        if (this.shake > 0) this.shake--;
-
-        this.bullets.forEach(b => b.update());
-        this.bullets = this.bullets.filter(b => b.alive);
-
-        this.enemies.forEach(e => e.update(this.player));
-        this.enemies = this.enemies.filter(e => e.alive);
-
-        if (this.bossEntity) {
-            this.bossEntity.update(this.player);
-            if (!this.bossEntity.alive && this.state === 'PLAYING') {
-                this.triggerStageClear();
-            }
-        }
-
-        if (!this.bossEntity && this.enemies.length === 0 && this.state === 'PLAYING') {
-            this.triggerStageClear();
-        }
-
-        this.particles.forEach(p => p.update());
-        this.particles = this.particles.filter(p => p.life > 0);
-
-        if (this.player) {
-            document.getElementById('hp-fill').style.width = `${Math.max(0, (this.player.hp / this.player.maxHp) * 100)}%`;
-            document.getElementById('hp-text').innerText = `${Math.ceil(this.player.hp)} / ${this.player.maxHp}`;
-            document.getElementById('coins-count').innerText = this.stageCoins;
-            document.getElementById('kills-count').innerText = this.stageKills;
-            
-            let w = this.player.currentWeapon;
-            document.getElementById('weapon-name').innerText = w.name;
-            document.getElementById('ammo-display').innerText = `${this.player.ammoInMag} / ${w.magSize}`;
-        }
-    },
-
-    draw() {
-        this.ctx.fillStyle = '#050508';
-        this.ctx.fillRect(0, 0, 1280, 720);
-
-        if (this.state === 'PLAYING' || this.state === 'PAUSED' || this.state === 'STORY') {
-            this.ctx.save();
-            
-            let shakeX = (Math.random() - 0.5) * this.shake;
-            let shakeY = (Math.random() - 0.5) * this.shake;
-            this.ctx.translate(shakeX, shakeY);
-
-            let theme = STAGES_DATA[this.activeStage - 1].theme;
-            this.drawEnvironment(theme);
-
-            this.ctx.fillStyle = '#111827';
-            this.ctx.fillRect(0 - this.cameraX, 580, 5000, 140);
-            this.ctx.fillStyle = '#ef4444';
-            this.ctx.fillRect(0 - this.cameraX, 580, 5000, 4);
-
-            if (this.player) this.player.draw(this.ctx, this.cameraX);
-            this.enemies.forEach(e => e.draw(this.ctx, this.cameraX));
-            if (this.bossEntity) this.bossEntity.draw(this.ctx, this.cameraX);
-            this.bullets.forEach(b => b.draw(this.ctx, this.cameraX));
-            this.particles.forEach(p => p.draw(this.ctx, this.cameraX));
-
-            this.ctx.restore();
-        }
-    },
-
-    drawEnvironment(theme) {
-        this.ctx.fillStyle = theme === 'military' ? '#0f172a' : (theme === 'lab' ? '#022c22' : '#1f1924');
-        for (let i = 0; i < 10; i++) {
-            let bgX = (i * 300) - (this.cameraX * 0.3);
-            this.ctx.fillRect(bgX, 200, 180, 380);
-        }
-    }
-};
-
-/* ==========================================================================
-   PLAYER CLASS (DRAWING SPRITE DESIGN)
-   ========================================================================== */
-class Player {
-    constructor(x, y) {
-        this.x = x; this.y = y;
-        this.w = 32; this.h = 64;
-        this.vx = 0; this.vy = 0;
-        
-        let hpLvl = SaveSystem.data.upgrades.hp || 0;
-        let speedLvl = SaveSystem.data.upgrades.speed || 0;
-        
-        this.maxHp = 100 + (hpLvl * 20);
-        this.hp = this.maxHp;
-        this.speed = 5 + (speedLvl * 0.5);
-        this.grounded = false;
-
-        this.equippedWeapons = SaveSystem.data.unlockedWeapons;
-        this.weaponIndex = 0;
-        this.currentWeapon = WEAPONS[this.equippedWeapons[0]];
-        this.ammoInMag = this.currentWeapon.magSize;
-        this.lastShotTime = 0;
-        this.isReloading = false;
-    }
-
-    selectWeaponIndex(idx) {
-        if (idx >= 0 && idx < this.equippedWeapons.length) {
-            this.weaponIndex = idx;
-            this.currentWeapon = WEAPONS[this.equippedWeapons[idx]];
-            this.ammoInMag = this.currentWeapon.magSize;
-            Sound.play('click');
-        }
-    }
-
-    reload() {
-        if (this.isReloading) return;
-        this.isReloading = true;
-        Sound.play('reload');
-        let reloadLvl = SaveSystem.data.upgrades.reload || 0;
-        let time = this.currentWeapon.reloadTime * (1 - reloadLvl * 0.1);
-        setTimeout(() => {
-            this.ammoInMag = this.currentWeapon.magSize;
-            this.isReloading = false;
-        }, time);
-    }
-
-    update() {
-        if (Game.keys['KeyA'] || Game.keys['ArrowLeft']) this.vx = -this.speed;
-        else if (Game.keys['KeyD'] || Game.keys['ArrowRight']) this.vx = this.speed;
-        else this.vx = 0;
-
-        if ((Game.keys['KeyW'] || Game.keys['Space'] || Game.keys['ArrowUp']) && this.grounded) {
-            this.vy = -13.5;
-            this.grounded = false;
-            Sound.play('jump');
-        }
-
-        this.vy += 0.65;
-        this.x += this.vx;
-        this.y += this.vy;
-
-        if (this.y + this.h >= 580) {
-            this.y = 580 - this.h;
-            this.vy = 0;
-            this.grounded = true;
-        }
-
-        if (Game.mouse.down && Date.now() - this.lastShotTime > this.currentWeapon.fireRate) {
-            this.shoot();
-        }
-    }
-
-    shoot() {
-        if (this.isReloading) return;
-        if (this.ammoInMag <= 0) {
-            this.reload();
-            return;
-        }
-
-        this.ammoInMag--;
-        this.lastShotTime = Date.now();
-        Game.stageShots++;
-        Game.shake = 4;
-        Sound.play('shoot');
-
-        let targetX = Game.mouse.x + Game.cameraX;
-        let targetY = Game.mouse.y;
-        let angle = Math.atan2(targetY - (this.y + 20), targetX - (this.x + 16));
-
-        let dmgLvl = SaveSystem.data.upgrades.damage || 0;
-        let finalDamage = this.currentWeapon.damage * (1 + dmgLvl * 0.15);
-
-        if (this.currentWeapon.name === 'Shotgun') {
-            for (let i = 0; i < 6; i++) {
-                let spread = (Math.random() - 0.5) * 0.25;
-                Game.bullets.push(new Bullet(this.x + 16, this.y + 20, angle + spread, finalDamage, true));
-            }
-        } else {
-            Game.bullets.push(new Bullet(this.x + 16, this.y + 20, angle, finalDamage, true));
-        }
-
-        Game.particles.push(new Particle(this.x + 16, this.y + 20, -Math.cos(angle)*2, -2, '#facc15', 3, 30));
-    }
-
-    takeDamage(dmg) {
-        this.hp -= dmg;
-        Sound.play('hit');
-        Game.shake = 8;
-        if (this.hp <= 0) {
-            Game.triggerGameOver();
-        }
-    }
-
-    draw(ctx, camX) {
-        ctx.save();
-        const px = this.x - camX;
-        const py = this.y;
-
-        const targetX = Game.mouse.x + Game.cameraX;
-        const facingRight = targetX >= this.x;
-
-        ctx.save();
-        if (!facingRight) {
-            ctx.translate(px + this.w / 2, py + this.h / 2);
-            ctx.scale(-1, 1);
-            ctx.translate(-(px + this.w / 2), -(py + this.h / 2));
-        }
-
-        // Tactical Boots & Legs
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(px + 6, py + 38, 8, 22);
-        ctx.fillRect(px + 18, py + 38, 8, 22);
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(px + 4, py + 56, 10, 8);
-        ctx.fillRect(px + 18, py + 56, 10, 8);
-
-        // Armor & Tactical Vest
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(px + 4, py + 18, 24, 22);
-        ctx.fillStyle = '#ef4444'; // Red SpecOps Vest Accent
-        ctx.fillRect(px + 8, py + 20, 16, 18);
-        ctx.fillStyle = '#991b1b';
-        ctx.fillRect(px + 10, py + 22, 12, 14);
-
-        // Head & Helmet
-        ctx.fillStyle = '#1e293b'; // Tactical Helmet
-        ctx.fillRect(px + 6, py + 2, 20, 16);
-        ctx.fillStyle = '#fca5a5'; // Face Mask / Skin
-        ctx.fillRect(px + 8, py + 8, 16, 8);
-        
-        // Glowing Night-Vision Visor
-        ctx.fillStyle = '#38bdf8';
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 8;
-        ctx.fillRect(px + 14, py + 7, 9, 4);
-        ctx.shadowBlur = 0;
-
-        // Arm & Gun Position
-        let angle = Math.atan2(Game.mouse.y - (py + 24), (Game.mouse.x + camX) - (this.x + 16));
-        if (!facingRight) angle = Math.PI - angle;
-
-        ctx.save();
-        ctx.translate(px + 16, py + 24);
-        ctx.rotate(angle);
-
-        // Weapon Render
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, -4, 22, 8);
-        ctx.fillStyle = '#64748b';
-        ctx.fillRect(4, -2, 14, 4);
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(2, -5, 8, 2);
-
-        ctx.restore();
-
-        ctx.restore();
-        ctx.restore();
-    }
-}
-
-/* ==========================================================================
-   ENEMY CLASS (SPECIFIC GRAPHICAL SPRITES FOR ALL TYPES)
-   ========================================================================== */
-class Enemy {
-    constructor(x, y, type) {
-        this.x = x; this.y = y;
-        this.type = type;
-        this.alive = true;
-        this.w = 32; this.h = 60;
-
-        if (type === 'fast') { this.hp = 35; this.speed = 3.5; this.color = '#eab308'; }
-        else if (type === 'heavy') { this.hp = 120; this.speed = 1.2; this.color = '#15803d'; this.w = 40; }
-        else if (type === 'ranged') { this.hp = 45; this.speed = 1.8; this.color = '#3b82f6'; }
-        else if (type === 'mutant') { this.hp = 80; this.speed = 2.2; this.color = '#a855f7'; }
-        else if (type === 'elite') { this.hp = 100; this.speed = 2.8; this.color = '#ec4899'; }
-        else { this.hp = 50; this.speed = 2.0; this.color = '#6b7280'; } // basic
-        
-        this.maxHp = this.hp;
-        this.lastAttackTime = 0;
-    }
-
-    update(player) {
-        if (!this.alive) return;
-
-        let dist = Math.abs(player.x - this.x);
-        if (dist > 30) {
-            this.x += player.x > this.x ? this.speed : -this.speed;
-        }
-
-        if (dist < 35 && Date.now() - this.lastAttackTime > 1000) {
-            player.takeDamage(12);
-            this.lastAttackTime = Date.now();
-        }
-    }
-
-    takeDamage(dmg) {
-        this.hp -= dmg;
-        for(let i=0; i<4; i++) {
-            Game.particles.push(new Particle(this.x+16, this.y+30, (Math.random()-0.5)*4, (Math.random()-0.5)*4, '#dc2626', 4, 20));
-        }
-        if (this.hp <= 0) {
-            this.alive = false;
-            Game.stageKills++;
-            Game.stageCoins += 25;
-            Sound.play('explosion');
-        }
-    }
-
-    draw(ctx, camX) {
-        if (!this.alive) return;
-        ctx.save();
-        const ex = this.x - camX;
-        const ey = this.y;
-
-        const facingRight = Game.player ? (Game.player.x >= this.x) : true;
-        
-        ctx.save();
-        if (!facingRight) {
-            ctx.translate(ex + this.w / 2, ey + this.h / 2);
-            ctx.scale(-1, 1);
-            ctx.translate(-(ex + this.w / 2), -(ey + this.h / 2));
-        }
-
-        if (this.type === 'mutant') {
-            // Lab Specimen Mutant
-            ctx.fillStyle = '#581c87';
-            ctx.fillRect(ex + 4, ey + 10, this.w - 8, this.h - 10);
-            ctx.fillStyle = '#a855f7';
-            ctx.beginPath();
-            ctx.moveTo(ex, ey + 20); ctx.lineTo(ex - 8, ey + 15); ctx.lineTo(ex + 4, ey + 30);
-            ctx.moveTo(ex, ey + 40); ctx.lineTo(ex - 8, ey + 35); ctx.lineTo(ex + 4, ey + 50);
-            ctx.fill();
-            // Glowing Red Eyes
-            ctx.fillStyle = '#ef4444';
-            ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 10;
-            ctx.fillRect(ex + 18, ey + 14, 6, 4);
-            ctx.shadowBlur = 0;
-        } else if (this.type === 'heavy') {
-            // Heavy Armored Juggernaut
-            ctx.fillStyle = '#14532d';
-            ctx.fillRect(ex, ey + 15, this.w, this.h - 15);
-            ctx.fillStyle = '#166534';
-            ctx.fillRect(ex - 2, ey + 10, 14, 15);
-            ctx.fillRect(ex + this.w - 12, ey + 10, 14, 15);
-            ctx.fillStyle = '#064e3b';
-            ctx.fillRect(ex + 6, ey, 28, 18);
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(ex + 20, ey + 6, 12, 4);
-        } else if (this.type === 'fast') {
-            // Fast Cyber Runner
-            ctx.fillStyle = '#854d0e';
-            ctx.fillRect(ex + 6, ey + 15, this.w - 12, this.h - 15);
-            ctx.fillStyle = '#eab308';
-            ctx.fillRect(ex + 10, ey + 4, 16, 14);
-            ctx.fillStyle = '#000';
-            ctx.fillRect(ex + 18, ey + 8, 8, 3);
-        } else if (this.type === 'elite') {
-            // Elite Special Ops Mercenary
-            ctx.fillStyle = '#831843';
-            ctx.fillRect(ex + 4, ey + 15, this.w - 8, this.h - 15);
-            ctx.fillStyle = '#be185d';
-            ctx.fillRect(ex + 6, ey + 2, 20, 16);
-            ctx.fillStyle = '#f43f5e';
-            ctx.shadowColor = '#f43f5e'; ctx.shadowBlur = 8;
-            ctx.fillRect(ex + 14, ey + 7, 10, 4);
-            ctx.shadowBlur = 0;
-        } else {
-            // Basic Mercenary / Patrol Guard
-            ctx.fillStyle = '#374151';
-            ctx.fillRect(ex + 4, ey + 16, this.w - 8, this.h - 16);
-            ctx.fillStyle = '#1f2937';
-            ctx.fillRect(ex + 6, ey + 2, 20, 16);
-            ctx.fillStyle = '#60a5fa';
-            ctx.fillRect(ex + 14, ey + 6, 9, 4);
-        }
-
-        // Enemy Rifle
-        ctx.fillStyle = '#111827';
-        ctx.fillRect(ex + 14, ey + 26, 18, 6);
-
-        ctx.restore();
-
-        // HP Bar
-        ctx.fillStyle = '#000';
-        ctx.fillRect(ex, ey - 10, this.w, 5);
-        ctx.fillStyle = '#22c55e';
-        ctx.fillRect(ex, ey - 10, Math.max(0, (this.hp / this.maxHp)) * this.w, 5);
-
-        ctx.restore();
-    }
-}
-
-/* ==========================================================================
-   BOSS CLASS (ADVANCED MECH SPRITE DESIGN)
-   ========================================================================== */
-class Boss {
-    constructor(x, y, name) {
-        this.x = x; this.y = y;
-        this.name = name;
-        this.w = 80; this.h = 120;
-        this.hp = 800; this.maxHp = 800;
-        this.phase = 1;
-        this.alive = true;
-        this.lastAttack = 0;
-    }
-
-    update(player) {
-        if (!this.alive) return;
-
-        if (this.hp < this.maxHp * 0.3) this.phase = 3;
-        else if (this.hp < this.maxHp * 0.6) this.phase = 2;
-
-        let speed = 1.5 + (this.phase * 0.8);
-        if (Math.abs(player.x - this.x) > 60) {
-            this.x += player.x > this.x ? speed : -speed;
-        }
-
-        if (Date.now() - this.lastAttack > (2000 / this.phase)) {
-            this.lastAttack = Date.now();
-            let angle = Math.atan2(player.y - this.y, player.x - this.x);
-            Game.bullets.push(new Bullet(this.x + 40, this.y + 40, angle, 20 * this.phase, false));
-        }
-    }
-
-    takeDamage(dmg) {
-        this.hp -= dmg;
-        if (this.hp <= 0) {
-            this.alive = false;
-            Game.stageCoins += 500;
-            Sound.play('explosion');
-        }
-    }
-
-    draw(ctx, camX) {
-        if (!this.alive) return;
-        ctx.save();
-        const bx = this.x - camX;
-        const by = this.y;
-
-        const mainColor = this.phase === 3 ? '#991b1b' : (this.phase === 2 ? '#d97706' : '#5b21b6');
-        const glowColor = this.phase === 3 ? '#ef4444' : (this.phase === 2 ? '#f59e0b' : '#a855f7');
-
-        // Boss Chassis Body Armor
-        ctx.fillStyle = '#1f2937';
-        ctx.fillRect(bx, by + 20, this.w, this.h - 20);
-
-        ctx.fillStyle = mainColor;
-        ctx.fillRect(bx + 6, by + 30, this.w - 12, this.h - 45);
-
-        // Shoulder Cannons
-        ctx.fillStyle = '#111827';
-        ctx.fillRect(bx - 10, by + 10, 24, 30);
-        ctx.fillRect(bx + this.w - 14, by + 10, 24, 30);
-
-        // Glowing Power Reactor Core
-        ctx.fillStyle = glowColor;
-        ctx.shadowColor = glowColor;
-        ctx.shadowBlur = 15;
-        ctx.beginPath();
-        ctx.arc(bx + this.w / 2, by + this.h / 2, 16, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Boss Mech Visor Head
-        ctx.fillStyle = '#111827';
-        ctx.fillRect(bx + 15, by - 10, this.w - 30, 30);
-        ctx.fillStyle = glowColor;
-        ctx.fillRect(bx + 25, by, this.w - 50, 8);
-        ctx.shadowBlur = 0;
-
-        // Boss Overhead HUD HP Bar
-        ctx.fillStyle = '#000';
-        ctx.fillRect(340, 60, 600, 20);
-        ctx.fillStyle = glowColor;
-        ctx.fillRect(340, 60, Math.max(0, (this.hp / this.maxHp)) * 600, 20);
-        ctx.strokeStyle = '#fff';
-        ctx.strokeRect(340, 60, 600, 20);
-
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${this.name} - PHASE ${this.phase}`, 640, 55);
-        ctx.restore();
-    }
-}
-
-/* ==========================================================================
-   BULLET CLASS
-   ========================================================================== */
-class Bullet {
-    constructor(x, y, angle, damage, isPlayer = true) {
-        this.x = x; this.y = y;
-        this.speed = isPlayer ? 18 : 8;
-        this.vx = Math.cos(angle) * this.speed;
-        this.vy = Math.sin(angle) * this.speed;
-        this.damage = damage;
-        this.isPlayer = isPlayer;
-        this.alive = true;
-    }
-
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-
-        if (this.y >= 580) this.alive = false;
-
-        if (this.isPlayer) {
-            Game.enemies.forEach(e => {
-                if (e.alive && this.x >= e.x && this.x <= e.x + e.w && this.y >= e.y && this.y <= e.y + e.h) {
-                    e.takeDamage(this.damage);
-                    this.alive = false;
+        };
+
+        // --- WEAPONS ---
+        const WEAPONS = {
+            pistol: { name: 'مسدس بلازما', damage: 35, fireRate: 180, magSize: 15, reloadTime: 1000 }
+        };
+
+        const Game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: document.getElementById('gameCanvas').getContext('2d'),
+            currentLevel: 1,
+            maxLevel: 1,
+            coins: 0,
+            player: null,
+            enemies: [],
+            bullets: [],
+            boss: null,
+            keys: {},
+            mouse: { x: 0, y: 0, isDown: false },
+            isRunning: false,
+            enemiesToSpawn: 0,
+            spawnTimer: 0,
+
+            init() {
+                this.bindEvents();
+                this.renderLevelGrid();
+                requestAnimationFrame(ts => this.loop(ts));
+            },
+
+            bindEvents() {
+                window.addEventListener('keydown', e => { 
+                    AudioFX.init();
+                    this.keys[e.key.toLowerCase()] = true; 
+                });
+                window.addEventListener('keyup', e => { this.keys[e.key.toLowerCase()] = false; });
+                
+                this.canvas.addEventListener('mousemove', e => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.mouse.x = e.clientX - rect.left;
+                    this.mouse.y = e.clientY - rect.top;
+                });
+                this.canvas.addEventListener('mousedown', e => { 
+                    AudioFX.init();
+                    if(e.button===0) this.mouse.isDown = true; 
+                });
+                window.addEventListener('mouseup', () => { this.mouse.isDown = false; });
+            },
+
+            showStartMenu() { this.hideAll(); document.getElementById('menu-start').classList.remove('hidden'); },
+            showLevelSelect() { AudioFX.init(); this.hideAll(); this.renderLevelGrid(); document.getElementById('menu-levels').classList.remove('hidden'); },
+            hideAll() { document.querySelectorAll('.overlay-screen, #hud').forEach(el => el.classList.add('hidden')); this.isRunning = false; },
+
+            renderLevelGrid() {
+                const grid = document.getElementById('levels-grid');
+                grid.innerHTML = '';
+                for (let i = 1; i <= 50; i++) {
+                    const btn = document.createElement('div');
+                    const unlocked = i <= this.maxLevel;
+                    const isBoss = i % 5 === 0;
+                    
+                    let classes = 'level-card';
+                    if(unlocked) classes += ' unlocked';
+                    if(isBoss) classes += ' boss-level';
+                    
+                    btn.className = classes;
+                    btn.innerHTML = `
+                        <div style="font-size:22px; font-weight:bold; color:${unlocked ? '#fff' : '#64748b'};">${i}</div>
+                        ${isBoss ? '<div style="font-size:12px; margin-top:4px;">💀 زعيم</div>' : ''}
+                    `;
+                    
+                    if(unlocked) btn.onclick = () => this.startLevel(i);
+                    grid.appendChild(btn);
                 }
-            });
-            if (Game.bossEntity && Game.bossEntity.alive) {
-                let b = Game.bossEntity;
-                if (this.x >= b.x && this.x <= b.x + b.w && this.y >= b.y && this.y <= b.y + b.h) {
-                    b.takeDamage(this.damage);
-                    this.alive = false;
+            },
+
+            startLevel(lvl) {
+                AudioFX.init();
+                this.hideAll();
+                document.getElementById('hud').classList.remove('hidden');
+                this.currentLevel = lvl;
+                this.isRunning = true;
+                
+                this.player = new Player(640, 360);
+                this.enemies = [];
+                this.bullets = [];
+                this.boss = null;
+                
+                this.enemiesToSpawn = 10 + Math.floor(lvl * 2.5);
+                this.spawnTimer = 0;
+
+                if (lvl % 5 === 0) {
+                    this.boss = new Boss(640, -100, lvl);
+                }
+            },
+
+            updateHUD() {
+                document.getElementById('hp-bar').style.width = `${Math.max(0, (this.player.hp/this.player.maxHp)*100)}%`;
+                document.getElementById('dash-bar').style.width = `${(this.player.dashEnergy/100)*100}%`;
+                document.getElementById('wave-text').innerText = `المرحلة ${this.currentLevel}`;
+                document.getElementById('enemies-left').innerText = `الأعداء: ${this.enemiesToSpawn + this.enemies.length + (this.boss?1:0)}`;
+                document.getElementById('coins-text').innerText = `🪙 ${this.coins}`;
+                document.getElementById('ammo-text').innerText = `${this.player.ammo} / ${WEAPONS.pistol.magSize}`;
+            },
+
+            gameOver(won) {
+                this.isRunning = false;
+                this.hideAll();
+                const end = document.getElementById('menu-end');
+                end.classList.remove('hidden');
+                const title = document.getElementById('end-title');
+                
+                if(won) {
+                    AudioFX.win();
+                    title.innerText = "نجاح المهمة!";
+                    title.style.color = "#22c55e";
+                    title.style.textShadow = "0 0 20px rgba(34,197,94,0.5)";
+                    if(this.currentLevel === this.maxLevel && this.maxLevel < 50) {
+                        this.maxLevel++;
+                    }
+                } else {
+                    AudioFX.lose();
+                    title.innerText = "لقد قضي عليك!";
+                    title.style.color = "#ef4444";
+                    title.style.textShadow = "0 0 20px rgba(239,68,68,0.5)";
+                }
+            },
+
+            drawBackground() {
+                this.ctx.fillStyle = "#050b14";
+                this.ctx.fillRect(0, 0, 1280, 720);
+                
+                const tileSize = 80;
+                this.ctx.lineWidth = 1;
+                
+                for (let x = 0; x < 1280; x += tileSize) {
+                    for (let y = 0; y < 720; y += tileSize) {
+                        this.ctx.fillStyle = ((x/tileSize + y/tileSize) % 2 === 0) ? "#080f1c" : "#0c1526";
+                        this.ctx.fillRect(x, y, tileSize, tileSize);
+                        
+                        this.ctx.strokeStyle = "#17253d";
+                        this.ctx.strokeRect(x, y, tileSize, tileSize);
+                        
+                        this.ctx.strokeStyle = "#1e2f4c";
+                        this.ctx.strokeRect(x + 10, y + 10, tileSize - 20, tileSize - 20);
+                        
+                        if ((x/tileSize + y/tileSize) % 3 === 0) {
+                            this.ctx.fillStyle = "#38bdf8";
+                            this.ctx.shadowColor = "#38bdf8";
+                            this.ctx.shadowBlur = 12;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + tileSize/2, y + tileSize/2, 4, 0, Math.PI*2);
+                            this.ctx.fill();
+                            this.ctx.shadowBlur = 0;
+                        }
+                    }
+                }
+            },
+
+            loop() {
+                if (this.isRunning) {
+                    this.update();
+                    this.drawBackground();
+                    this.draw();
+                }
+                requestAnimationFrame(() => this.loop());
+            },
+
+            update() {
+                this.player.update();
+
+                if (this.enemiesToSpawn > 0) {
+                    this.spawnTimer++;
+                    let spawnRate = Math.max(20, 50 - (this.currentLevel * 0.5));
+                    
+                    if (this.spawnTimer > spawnRate) {
+                        const types = ['basic', 'fast', 'heavy', 'ranged', 'mutant'];
+                        let availableTypes = Math.min(types.length, Math.ceil(this.currentLevel / 2));
+                        const randomType = types[Math.floor(Math.random() * availableTypes)];
+                        
+                        let ex = Math.random() < 0.5 ? -50 : 1330;
+                        let ey = Math.random() * 720;
+                        
+                        this.enemies.push(new Enemy(ex, ey, randomType, this.currentLevel));
+                        this.enemiesToSpawn--;
+                        this.spawnTimer = 0;
+                    }
+                }
+
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    let b = this.bullets[i];
+                    b.update();
+                    if (b.x < -100 || b.x > 1380 || b.y < -100 || b.y > 820) {
+                        this.bullets.splice(i, 1);
+                        continue;
+                    }
+
+                    if (!b.isPlayer && this.player.checkCollision(b.x, b.y, b.size)) {
+                        this.player.takeDamage(b.damage);
+                        this.bullets.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    let e = this.enemies[i];
+                    e.update(this.player);
+
+                    for (let j = this.bullets.length - 1; j >= 0; j--) {
+                        let b = this.bullets[j];
+                        if (b.isPlayer && e.checkCollision(b.x, b.y, b.size)) {
+                            e.hp -= b.damage;
+                            AudioFX.hit();
+                            this.bullets.splice(j, 1);
+                            if (e.hp <= 0) {
+                                AudioFX.kill();
+                                this.coins += 25;
+                                this.enemies.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (this.boss) {
+                    this.boss.update(this.player);
+                    for (let j = this.bullets.length - 1; j >= 0; j--) {
+                        let b = this.bullets[j];
+                        if (b.isPlayer && this.boss.checkCollision(b.x, b.y, b.size)) {
+                            this.boss.hp -= b.damage;
+                            AudioFX.hit();
+                            this.bullets.splice(j, 1);
+                            if (this.boss.hp <= 0) {
+                                AudioFX.kill();
+                                this.coins += 500;
+                                this.boss = null;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (this.enemiesToSpawn === 0 && this.enemies.length === 0 && !this.boss) {
+                    this.gameOver(true);
+                }
+
+                this.updateHUD();
+            },
+
+            draw() {
+                this.enemies.forEach(e => e.draw(this.ctx));
+                if (this.boss) this.boss.draw(this.ctx);
+                this.bullets.forEach(b => b.draw(this.ctx));
+                this.player.draw(this.ctx);
+            }
+        };
+
+        // --- PLAYER CLASS ---
+        class Player {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.w = 36; this.h = 36;
+                this.hp = 150; this.maxHp = 150;
+                this.speed = 5;
+                this.ammo = WEAPONS.pistol.magSize;
+                this.lastShot = 0;
+                this.dashEnergy = 100;
+                this.isDashing = false;
+                this.dashTime = 0;
+            }
+
+            update() {
+                if (Game.keys[' '] && this.dashEnergy === 100) {
+                    this.isDashing = true;
+                    this.dashEnergy = 0;
+                    this.dashTime = Date.now();
+                    AudioFX.dash();
+                }
+                if (this.isDashing && Date.now() - this.dashTime > 250) {
+                    this.isDashing = false;
+                }
+                if (this.dashEnergy < 100) this.dashEnergy = Math.min(100, this.dashEnergy + 0.6);
+
+                let currentSpeed = this.isDashing ? this.speed * 3.5 : this.speed;
+
+                if (Game.keys['w'] || Game.keys['z']) this.y -= currentSpeed;
+                if (Game.keys['s']) this.y += currentSpeed;
+                if (Game.keys['a'] || Game.keys['q']) this.x -= currentSpeed;
+                if (Game.keys['d']) this.x += currentSpeed;
+
+                this.x = Math.max(20, Math.min(1260, this.x));
+                this.y = Math.max(20, Math.min(700, this.y));
+
+                if (Game.mouse.isDown && Date.now() - this.lastShot > WEAPONS.pistol.fireRate && this.ammo > 0) {
+                    this.lastShot = Date.now();
+                    this.ammo--;
+                    AudioFX.shoot();
+                    const angle = Math.atan2(Game.mouse.y - this.y, Game.mouse.x - this.x);
+                    Game.bullets.push(new Bullet(this.x, this.y, angle, WEAPONS.pistol.damage, true));
+                }
+
+                if (this.ammo <= 0 && Date.now() - this.lastShot > WEAPONS.pistol.reloadTime) {
+                    this.ammo = WEAPONS.pistol.magSize;
                 }
             }
-        } else {
-            let p = Game.player;
-            if (p && this.x >= p.x && this.x <= p.x + p.w && this.y >= p.y && this.y <= p.y + p.h) {
-                p.takeDamage(this.damage);
-                this.alive = false;
+
+            takeDamage(dmg) {
+                if(this.isDashing) return; 
+                this.hp -= dmg;
+                AudioFX.hit();
+                if(this.hp <= 0) Game.gameOver(false);
+            }
+
+            checkCollision(x, y, r) {
+                return (Math.abs(this.x - x) < this.w/2 + r && Math.abs(this.y - y) < this.h/2 + r);
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                const angle = Math.atan2(Game.mouse.y - this.y, Game.mouse.x - this.x);
+                ctx.rotate(angle);
+
+                if(this.isDashing) {
+                    ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+                    ctx.beginPath(); ctx.arc(-25, 0, 18, 0, Math.PI*2); ctx.fill();
+                }
+                
+                ctx.fillStyle = "#1e293b";
+                ctx.beginPath(); ctx.roundRect(-10, -15, 20, 30, 5); ctx.fill();
+                
+                ctx.fillStyle = "#0f172a";
+                ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#38bdf8"; 
+                ctx.beginPath(); ctx.arc(4, 0, 8, -Math.PI/2, Math.PI/2); ctx.fill();
+
+                ctx.fillStyle = "#64748b";
+                ctx.fillRect(10, 5, 28, 7);
+                ctx.fillStyle = "#38bdf8";
+                ctx.shadowColor = "#38bdf8"; ctx.shadowBlur = 10;
+                ctx.fillRect(34, 6, 4, 5); 
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
             }
         }
-    }
 
-    draw(ctx, camX) {
-        ctx.save();
-        ctx.fillStyle = this.isPlayer ? '#facc15' : '#ef4444';
-        ctx.beginPath();
-        ctx.arc(this.x - camX, this.y, 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    }
-}
+        // --- ENEMY CLASS ---
+        class Enemy {
+            constructor(x, y, type, level) {
+                this.x = x; this.y = y; this.type = type;
+                this.lastAttack = 0; this.timeCreated = Date.now();
+                
+                let hpMultiplier = 1 + (level * 0.05);
 
-// Start Game Instance
-window.onload = () => Game.init();
-</script>
+                if (type === 'fast') { this.hp=40 * hpMultiplier; this.speed=4.8; this.color='#facc15'; this.r=14; }
+                else if (type === 'heavy') { this.hp=250 * hpMultiplier; this.speed=1.6; this.color='#22c55e'; this.r=22; }
+                else if (type === 'ranged') { this.hp=65 * hpMultiplier; this.speed=2.5; this.color='#a855f7'; this.r=16; }
+                else if (type === 'mutant') { this.hp=130 * hpMultiplier; this.speed=3.0; this.color='#ec4899'; this.r=18; }
+                else { this.hp=85 * hpMultiplier; this.speed=2.3; this.color='#ef4444'; this.r=16; } 
+                
+                this.maxHp = this.hp;
+            }
+
+            update(player) {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const angle = Math.atan2(dy, dx);
+                this.facingAngle = angle;
+
+                if (this.type === 'ranged') {
+                    if (dist > 350) {
+                        this.x += Math.cos(angle) * this.speed;
+                        this.y += Math.sin(angle) * this.speed;
+                    } else if (Date.now() - this.lastAttack > 1200) {
+                        Game.bullets.push(new Bullet(this.x, this.y, angle, 15, false));
+                        AudioFX.shoot();
+                        this.lastAttack = Date.now();
+                    }
+                } else if (this.type === 'mutant') {
+                    const zig = Math.sin((Date.now() - this.timeCreated) / 120) * 5;
+                    this.x += Math.cos(angle) * this.speed + Math.cos(angle + Math.PI/2) * zig;
+                    this.y += Math.sin(angle) * this.speed + Math.sin(angle + Math.PI/2) * zig;
+                } else {
+                    this.x += Math.cos(angle) * this.speed;
+                    this.y += Math.sin(angle) * this.speed;
+                }
+
+                if (dist < this.r + 20 && Date.now() - this.lastAttack > 800 && this.type !== 'ranged') {
+                    player.takeDamage(20);
+                    this.lastAttack = Date.now();
+                }
+            }
+
+            checkCollision(x, y, br) {
+                return (Math.abs(this.x - x) < this.r + br && Math.abs(this.y - y) < this.r + br);
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.facingAngle);
+
+                if (this.type === 'heavy') {
+                    ctx.fillStyle = "#166534";
+                    ctx.beginPath(); ctx.roundRect(-20, -25, 40, 50, 8); ctx.fill();
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(0, -10, 25, 20);
+                } 
+                else if (this.type === 'fast') {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); ctx.moveTo(20, 0); ctx.lineTo(-15, 15); ctx.lineTo(-15, -15); ctx.fill();
+                }
+                else if (this.type === 'mutant') {
+                    ctx.fillStyle = this.color;
+                    ctx.shadowColor = this.color; ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    let pulse = Math.sin(Date.now() / 100) * 4;
+                    ctx.arc(0, 0, this.r + pulse, 0, Math.PI*2); ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(5, -8, 4, 4); ctx.fillRect(10, 5, 4, 4); ctx.fillRect(2, 6, 4, 4);
+                }
+                else if (this.type === 'ranged') {
+                    ctx.fillStyle = "#334155";
+                    ctx.beginPath(); ctx.arc(0, 0, this.r, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); ctx.arc(8, 0, 5, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = this.color; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(38, 0); ctx.stroke(); 
+                }
+                else {
+                    ctx.fillStyle = "#475569";
+                    ctx.beginPath(); ctx.arc(0, 0, this.r, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(5, -5, 15, 10);
+                }
+
+                ctx.restore();
+
+                ctx.fillStyle = "#000";
+                ctx.fillRect(this.x - 15, this.y - this.r - 12, 30, 6);
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(this.x - 15, this.y - this.r - 12, (this.hp/this.maxHp)*30, 6);
+            }
+        }
+
+        // --- BOSS CLASS ---
+        class Boss {
+            constructor(x, y, level) {
+                this.x = x; this.y = y; this.r = 45;
+                this.hp = 1000 + (level * 200); 
+                this.maxHp = this.hp;
+                this.lastAttack = 0;
+                this.phase = 1;
+            }
+
+            update(player) {
+                this.phase = this.hp < (this.maxHp / 2) ? 2 : 1;
+                const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                this.facingAngle = angle;
+
+                this.x += Math.cos(angle) * (this.phase === 2 ? 2.0 : 1.2);
+                this.y += Math.sin(angle) * (this.phase === 2 ? 2.0 : 1.2);
+
+                if (Date.now() - this.lastAttack > (this.phase === 2 ? 700 : 1200)) {
+                    let spread = this.phase === 2 ? 2 : 1;
+                    for(let i = -spread; i <= spread; i++) {
+                        Game.bullets.push(new Bullet(this.x, this.y, angle + (i * 0.2), 25, false));
+                    }
+                    AudioFX.shoot();
+                    this.lastAttack = Date.now();
+                }
+            }
+
+            checkCollision(x, y, br) {
+                return (Math.abs(this.x - x) < this.r + br && Math.abs(this.y - y) < this.r + br);
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.facingAngle);
+
+                ctx.fillStyle = "#0f172a";
+                ctx.beginPath(); ctx.moveTo(50, 0); ctx.lineTo(-35, 45); ctx.lineTo(-35, -45); ctx.fill();
+                
+                ctx.fillStyle = this.phase === 2 ? "#ef4444" : "#eab308";
+                ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 25;
+                ctx.beginPath(); ctx.arc(15, 0, 18, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(0, 25, 55, 18);
+                ctx.fillRect(0, -43, 55, 18);
+
+                ctx.restore();
+
+                ctx.fillStyle = "#000"; ctx.fillRect(this.x - 50, this.y - 70, 100, 10);
+                ctx.fillStyle = this.phase === 2 ? "#ef4444" : "#facc15"; 
+                ctx.fillRect(this.x - 50, this.y - 70, (this.hp/this.maxHp)*100, 10);
+            }
+        }
+
+        // --- BULLET CLASS ---
+        class Bullet {
+            constructor(x, y, angle, dmg, isPlayer) {
+                this.x = x; this.y = y; this.damage = dmg; this.isPlayer = isPlayer;
+                this.speed = isPlayer ? 22 : 8;
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+                this.size = 5;
+            }
+            update() { this.x += this.vx; this.y += this.vy; }
+            draw(ctx) {
+                ctx.fillStyle = this.isPlayer ? "#38bdf8" : "#ef4444";
+                ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        window.onload = () => Game.init();
+    </script>
 </body>
 </html>
